@@ -58,22 +58,17 @@ def generate_chart(chart_renderer):
     return "data:image/png;base64," + img_base64
 
 @app.route('/update_data', method='POST')
-def update_data(new_data):
+def update_data_http():
+    new_data = request.json
     print(f"Received raw new_data: {new_data}")  # Debugging
     
-    # 🛠 Ensure new_data is a valid list of numbers
     if not isinstance(new_data, list):
         raise ValueError("Received data is not a list.")
-    
-    # Filter out non-numeric values
     cleaned_data = [x for x in new_data if isinstance(x, (int, float))]
-
-    # Ensure it's a list of lists (SPC expects it)
     formatted_data = [cleaned_data] if isinstance(cleaned_data[0], (int, float)) else cleaned_data
 
     print(f"Formatted new_data: {formatted_data}")  # Debugging check
 
-    # Pass to control chart
     control_chart.update_data(np.array(formatted_data, dtype=np.float64))
 
 @app.route('/toggle_notifications')
@@ -81,6 +76,10 @@ def toggle_notifications():
     status = control_chart.toggle_notifications()
     return {"status": status}
 
+@app.route('/toggle_WEH')
+def toggle_WEH():
+    status = control_chart.toggle_WEH()
+    return {"status": status}
 
 #-----------------------------------------------------------------------------
 # Routes:

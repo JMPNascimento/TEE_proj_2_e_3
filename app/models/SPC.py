@@ -25,6 +25,7 @@ class ControlChart:
         self.individual_values = []
         self.moving_ranges = []
         self.notify = False
+        self.WEH = False
 
     def toggle_notifications(self):
         if TELEGRAM_CHAT_ID == "YOUR_ID":
@@ -38,13 +39,15 @@ class ControlChart:
 
         return self.notify
     
+    def toggle_WEH(self):
+        self.WEH = not self.WEH
+        return self.WEH
+    
     def generate_data(self):
-        self.global_data = [
-            list(map(float, np.round(np.random.normal(loc=self.loc, scale=self.scale, size=self.sample_size), 2)))
-            for _ in range(self.num_samples)
-        ]
+        self.global_data = np.round(np.random.normal(loc=self.loc, scale=self.scale, 
+                                                 size=(self.num_samples, self.sample_size)), 2)
 
-        json_data = json.dumps({"data": self.global_data})
+        json_data = json.dumps({"data": self.global_data.tolist()})
         return json_data 
 
     def update_data(self, new_data):
@@ -57,15 +60,9 @@ class ControlChart:
         if not hasattr(self, "global_data") or len(self.global_data) == 0:
             self.global_data = new_data
         else:
-            self.global_data = np.vstack((self.global_data, new_data))
+            self.global_data = np.concatenate((self.global_data, new_data), axis=0)
 
         print(f"Stored Data: {self.global_data.shape}")
-
-        self.sample_results = []
-        self.outliers_per_sample = []
-        self.individual_values = []
-        self.moving_ranges = []
-        self.control_limits = {}
 
         self.calculate_statistics()
 
@@ -73,6 +70,13 @@ class ControlChart:
             self.check_for_outliers_and_notify()
 
     def calculate_statistics(self):
+
+        self.sample_results = []
+        self.outliers_per_sample = []
+        self.individual_values = []
+        self.moving_ranges = []
+        self.control_limits = {}
+
         for sample_set in self.global_data:
             ls = np.array(sample_set)
             q1 = np.percentile(ls, 25)
@@ -119,6 +123,9 @@ class ControlChart:
         global_amplitude = [res[1] for res in self.sample_results]
         global_std = [res[2] for res in self.sample_results]
 
+        flattened_data = self.global_data.reshape(-1)
+        alldata_std = np.std(flattened_data, ddof=1)
+
         a2 = 0.577
         d3, d4 = 0.0, 2.114
         c4 = 0.940
@@ -134,6 +141,9 @@ class ControlChart:
         lcl_X = cl_X - a2 * cl_R
         lcl_R = d3 * cl_R
         lcl_s = cl_s - 3 * (cl_s / c4) * np.sqrt(1 - c4**2)
+
+        ucl_WEH = cl_X + 3 * alldata_std
+        lcl_WEH = cl_X - 3 * alldata_std
 
         # self.moving_ranges = self.calculate_moving_range_values()
         
@@ -151,6 +161,7 @@ class ControlChart:
             "cl_R": cl_R, "ucl_R": ucl_R, "lcl_R": lcl_R,
             "cl_s": cl_s, "ucl_s": ucl_s, "lcl_s": lcl_s,
             "cl_MR": cl_MR, "ucl_MR": ucl_MR, "lcl_MR": lcl_MR,
+            "ucl_WEH": ucl_WEH, "lcl_WEH": lcl_WEH,
             "global_mean": global_mean, "global_amplitude": global_amplitude, "global_std": global_std,
         }
 

@@ -84,8 +84,12 @@ class IndividualChartRenderer(BaseChartRenderer):
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.plot(individual_values, marker='o', label='Individual Values')
         ax.axhline(limits["cl_X"], color='green', linestyle='--', label='Central Line')
-        ax.axhline(limits["ucl_X"], color='red', linestyle='--', label='UCL')
-        ax.axhline(limits["lcl_X"], color='red', linestyle='--', label='LCL')
+        if self.control_chart.WEH:
+            ax.axhline(limits["ucl_WEH"], color='red', linestyle='--', label='UCL (WEH)')
+            ax.axhline(limits["lcl_WEH"], color='red', linestyle='--', label='LCL (WEH)')
+        else:
+            ax.axhline(limits["ucl_X"], color='red', linestyle='--', label='UCL (mean)')
+            ax.axhline(limits["lcl_X"], color='red', linestyle='--', label='LCL (mean)')
 
         ax.set_title('Control Chart - Individual (I)')
         ax.legend()
