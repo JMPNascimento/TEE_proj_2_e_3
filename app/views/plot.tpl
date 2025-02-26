@@ -9,7 +9,23 @@
 <body>
     <h1>SPC Real-Time Charts</h1>
 
-    <a href="/">Back to Home</a>
+    <a href="/">Back to Home</a><br>
+
+    <button id="toggleNotifications" onclick="toggleNotifications()">Desativar Notificações</button>
+
+    <script>
+        let notificationsEnabled = true;
+
+        function toggleNotifications() {
+            fetch('/toggle_notifications', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    notificationsEnabled = data.status;
+                    document.getElementById("toggleNotifications").innerText = notificationsEnabled ? "Desativar Notificações" : "Ativar Notificações";
+                })
+                .catch(error => console.error("Erro ao alternar notificações:", error));
+        }
+    </script>
 
     <div>
         <h2>X Chart:</h2>

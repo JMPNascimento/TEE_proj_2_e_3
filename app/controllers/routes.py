@@ -3,6 +3,7 @@ from bottle import Bottle, request, response, template, TEMPLATE_PATH
 from app.models.SPC import ControlChart
 from app.models.graph import *
 from io import BytesIO
+from flask import jsonify
 import socketio
 import base64
 import os
@@ -84,6 +85,11 @@ def update_data(new_data):
 
 #-----------------------------------------------------------------------------
 # Routes:
+
+@app.route('/toggle_notifications', methods=['POST'])
+def toggle_notifications():
+    result = control_chart.toggle_notifications()
+    return jsonify(result)
 
 @app.route('/')
 def plots_page():

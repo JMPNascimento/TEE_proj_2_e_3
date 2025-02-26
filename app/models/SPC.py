@@ -4,7 +4,7 @@ import random
 import requests
 
 TELEGRAM_BOT_TOKEN = "7821098978:AAHKYlf0sLitACMKGNmsp2-uJn1v0kV2PPg"
-TELEGRAM_CHAT_ID = "6055747906"
+TELEGRAM_CHAT_ID = "YOUR_ID" # Search for userinfobot on Telegram to get your User ID
 
 def send_telegram_message(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -24,8 +24,14 @@ class ControlChart:
         self.control_limits = {}
         self.individual_values = []
         self.moving_ranges = []
+        self.notificar = True
 
-
+    def toggle_notifications(self):
+        self.notificar = not self.notificar
+        status = "ativadas" if self.notificar else "desativadas"
+        print(f"Notificações {status}")
+        return {"message": f"Notificações {status}", "status": self.notificar}
+    
     def generate_data(self):
         self.global_data = [
             list(map(float, np.round(np.random.normal(loc=self.loc, scale=self.scale, size=self.sample_size), 2)))
@@ -56,7 +62,9 @@ class ControlChart:
         self.control_limits = {}
 
         self.calculate_statistics()
-        self.check_for_outliers_and_notify()
+
+        if self.notificar:
+            self.check_for_outliers_and_notify()
 
     def calculate_statistics(self):
         for sample_set in self.global_data:
@@ -141,7 +149,7 @@ class ControlChart:
         }
 
     def check_for_outliers_and_notify(self):
-        
+
         sample_set = self.global_data[-1]
         mean_value = np.mean(sample_set)
         amplitude_value = np.max(sample_set) - np.min(sample_set)
