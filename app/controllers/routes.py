@@ -50,13 +50,12 @@ def send_chart_updates():
     sio.emit('chart_update', charts)
 
 def generate_chart(chart_renderer):
-    img_buffer = BytesIO()
-    chart_renderer.render().save(img_buffer, format="PNG") 
+    img_buffer = chart_renderer.render()
     img_buffer.seek(0)
     
     img_base64 = base64.b64encode(img_buffer.getvalue()).decode("utf-8")
-    
-    return {"image": img_base64}
+
+    return "data:image/png;base64," + img_base64
 
 @app.route('/update_data', method='POST')
 def update_data(new_data):
@@ -77,9 +76,18 @@ def update_data(new_data):
     # Pass to control chart
     control_chart.update_data(np.array(formatted_data, dtype=np.float64))
 
+@app.route('/toggle_notifications')
+def toggle_notifications():
+    status = control_chart.toggle_notifications()
+    return {"status": status}
+
 
 #-----------------------------------------------------------------------------
 # Routes:
+
+@app.route('/')
+def plots_page():
+    return template("home.tpl")
 
 @app.route('/plot')
 def plots_page():
