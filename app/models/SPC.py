@@ -24,13 +24,19 @@ class ControlChart:
         self.control_limits = {}
         self.individual_values = []
         self.moving_ranges = []
-        self.notificar = True
+        self.notify = False
 
     def toggle_notifications(self):
-        self.notificar = not self.notificar
-        status = "ativadas" if self.notificar else "desativadas"
-        print(f"Notificações {status}")
-        return {"message": f"Notificações {status}", "status": self.notificar}
+        if TELEGRAM_CHAT_ID == "YOUR_ID":
+            print("Please, set your Telegram user's ID in ./app/models/SPC")
+            self.notify = False
+        else:
+            self.notify = not self.notify
+
+        status = "active" if self.notify else "not active"
+        print(f"The Telegram notifications are {status}.")
+
+        return self.notify
     
     def generate_data(self):
         self.global_data = [
@@ -53,7 +59,7 @@ class ControlChart:
         else:
             self.global_data = np.vstack((self.global_data, new_data))
 
-        print(f"🔄 Dados armazenados atualizados: {self.global_data.shape}")
+        print(f"Stored Data: {self.global_data.shape}")
 
         self.sample_results = []
         self.outliers_per_sample = []
@@ -63,7 +69,7 @@ class ControlChart:
 
         self.calculate_statistics()
 
-        if self.notificar:
+        if self.notify:
             self.check_for_outliers_and_notify()
 
     def calculate_statistics(self):
