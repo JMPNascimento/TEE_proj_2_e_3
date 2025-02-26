@@ -36,10 +36,6 @@ def update_data(sid, new_data):
     control_chart.update_data(new_data)
     control_chart.calculate_statistics()
 
-    #print("🔄 Dados atualizados para X Chart:", control_chart.control_limits["global_mean"])
-    #print("🔄 Dados atualizados para R Chart:", control_chart.control_limits["global_amplitude"])
-    #print("🔄 Dados atualizados para s Chart:", control_chart.control_limits["global_std"])
-
     send_chart_updates()
 
 def send_chart_updates():
@@ -59,7 +55,6 @@ def generate_chart(chart_renderer):
     
     img_base64 = base64.b64encode(img_buffer.getvalue()).decode("utf-8")
 
-    # print(f"Tamanho da imagem Base64: {len(img_base64)} caracteres")
     return "data:image/png;base64," + img_base64
 
 @app.route('/update_data', method='POST')
@@ -80,6 +75,11 @@ def update_data(new_data):
 
     # Pass to control chart
     control_chart.update_data(np.array(formatted_data, dtype=np.float64))
+
+@app.route('/toggle_notifications')
+def toggle_notifications():
+    status = control_chart.toggle_notifications()
+    return {"status": status}
 
 
 #-----------------------------------------------------------------------------

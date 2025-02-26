@@ -1,6 +1,15 @@
 import numpy as np
 import json
 import random
+import requests
+
+TELEGRAM_BOT_TOKEN = "7821098978:AAHKYlf0sLitACMKGNmsp2-uJn1v0kV2PPg"
+TELEGRAM_CHAT_ID = "YOUR_ID" # Search for userinfobot on Telegram to get your User ID
+
+def send_telegram_message(message):
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    data = {"chat_id": TELEGRAM_CHAT_ID, "text": message}
+    requests.post(url, data=data)
 
 class ControlChart:
     def __init__(self, num_samples=10, sample_size=5, loc=10, scale=3, outlier_prob=0.3):
@@ -15,8 +24,20 @@ class ControlChart:
         self.control_limits = {}
         self.individual_values = []
         self.moving_ranges = []
+        self.notify = False
 
+    def toggle_notifications(self):
+        if TELEGRAM_CHAT_ID == "YOUR_ID":
+            print("Please, set your Telegram user's ID in ./app/models/SPC")
+            self.notify = False
+        else:
+            self.notify = not self.notify
 
+        status = "active" if self.notify else "not active"
+        print(f"The Telegram notifications are {status}.")
+
+        return self.notify
+    
     def generate_data(self):
         self.global_data = [
             list(map(float, np.round(np.random.normal(loc=self.loc, scale=self.scale, size=self.sample_size), 2)))
@@ -38,7 +59,7 @@ class ControlChart:
         else:
             self.global_data = np.vstack((self.global_data, new_data))
 
-        print(f"🔄 Dados armazenados atualizados: {self.global_data.shape}")
+        print(f"Stored Data: {self.global_data.shape}")
 
         self.sample_results = []
         self.outliers_per_sample = []
@@ -47,6 +68,9 @@ class ControlChart:
         self.control_limits = {}
 
         self.calculate_statistics()
+
+        if self.notify:
+            self.check_for_outliers_and_notify()
 
     def calculate_statistics(self):
         for sample_set in self.global_data:
@@ -129,3 +153,22 @@ class ControlChart:
             "cl_MR": cl_MR, "ucl_MR": ucl_MR, "lcl_MR": lcl_MR,
             "global_mean": global_mean, "global_amplitude": global_amplitude, "global_std": global_std,
         }
+
+    def check_for_outliers_and_notify(self):
+
+        sample_set = self.global_data[-1]
+        mean_value = np.mean(sample_set)
+        amplitude_value = np.max(sample_set) - np.min(sample_set)
+        std_value = np.std(sample_set, ddof=1)
+
+        if mean_value > self.control_limits["ucl_X"] or mean_value < self.control_limits["lcl_X"]:
+            message = f"ALERTA: Novo dado de média ({mean_value}) ultrapassou os limites de controle!"
+            send_telegram_message(message)
+
+        if amplitude_value > self.control_limits["ucl_R"] or amplitude_value < self.control_limits["lcl_R"]:
+            message = f"ALERTA: Novo dado de amplitude ({amplitude_value}) ultrapassou os limites de controle!"
+            send_telegram_message(message)
+
+        if std_value > self.control_limits["ucl_s"] or std_value < self.control_limits["lcl_s"]:
+            message = f"ALERTA: Novo dado de desvio padrão ({std_value}) ultrapassou os limites de controle!"
+            send_telegram_message(message)
