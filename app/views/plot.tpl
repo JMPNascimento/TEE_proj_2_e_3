@@ -9,35 +9,75 @@
 <body>
     <h1>SPC Real-Time Charts</h1>
 
+    <a href="/">Back to Home</a>
+
     <div>
-        <h2>X Chart</h2>
-        <img id="mean_chart" src="{{ chart_url }}" style="width: 100%; max-width: 600px;">
+        <h2>X Chart:</h2>
+        <img id="mean_chart" src="" style="width: 100%; max-width: 600px;">
+        <script>
+            fetch('/plot/mean')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("mean_chart").src = data;
+                })
+                .catch(error => console.error("Erro ao carregar a imagem:", error));
+        </script>
     </div>
 
     <div>
-        <h2>R Chart</h2>
-        <img id="amplitude_chart" src="/plot/amplitude" style="width: 100%; max-width: 600px;">
+        <h2>R Chart:</h2>
+        <img id="amplitude_chart" src="" style="width: 100%; max-width: 600px;">
+        <script>
+            fetch('/plot/amplitude')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("amplitude_chart").src = data;
+                })
+                .catch(error => console.error("Erro ao carregar a imagem:", error));
+        </script>
     </div>
 
     <div>
-        <h2>s Chart</h2>
-        <img id="stddev_chart" src="/plot/stddev" style="width: 100%; max-width: 600px;">
+        <h2>s Chart:</h2>
+        <img id="stddev_chart" src="" style="width: 100%; max-width: 600px;">
+        <script>
+            fetch('/plot/stddev')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("stddev_chart").src = data;
+                })
+                .catch(error => console.error("Erro ao carregar a imagem:", error));
+        </script>
     </div>
 
     <div>
-        <h2>Individual Chart</h2>
-        <img id="individual_chart" src="/plot/individual" style="width: 100%; max-width: 600px;">
+        <h2>Individual Chart:</h2>
+        <img id="individual_chart" src="" style="width: 100%; max-width: 600px;">
+        <script>
+            fetch('/plot/individual')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("individual_chart").src = data;
+                })
+                .catch(error => console.error("Erro ao carregar a imagem:", error));
+        </script>
     </div>
 
     <div>
-        <h2>Moving Range Chart</h2>
-        <img id="moving_range_chart" src="/plot/moving_range" style="width: 100%; max-width: 600px;">
+        <h2>Moving Range Chart:</h2>
+        <img id="moving_range_chart" src="" style="width: 100%; max-width: 600px;">
+        <script>
+            fetch('/plot/moving_range')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("moving_range_chart").src = data;
+                })
+                .catch(error => console.error("Erro ao carregar a imagem:", error));
+        </script>
     </div>
-
-    <a href="/plot">Back to Chart Selection</a>
 
     <script>
-        const socket = io.connect('http://localhost:8080');
+        const socket = io.connect("http://localhost:8080", { transports: ["websocket"] });
 
         socket.on('connect', () => {
             console.log('Connected to WebSocket');

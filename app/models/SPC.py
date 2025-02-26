@@ -3,7 +3,7 @@ import json
 import random
 
 class ControlChart:
-    def __init__(self, num_samples=20, sample_size=2, loc=10, scale=3, outlier_prob=0.3):
+    def __init__(self, num_samples=10, sample_size=5, loc=10, scale=3, outlier_prob=0.3):
         self.num_samples = num_samples
         self.sample_size = sample_size
         self.loc = loc
@@ -30,10 +30,15 @@ class ControlChart:
         print(f"Received new_data: {new_data}")
         if not isinstance(new_data, list) or not all(isinstance(value, (int, float)) for value in new_data):
             raise ValueError("new_data must be a list of numbers.")
-
-        self.global_data = np.array(new_data)
         
-        self.global_data = self.global_data.reshape(-1, self.sample_size)
+        new_data = np.array(new_data).reshape(-1, self.sample_size)
+
+        if not hasattr(self, "global_data") or len(self.global_data) == 0:
+            self.global_data = new_data
+        else:
+            self.global_data = np.vstack((self.global_data, new_data))
+
+        print(f"🔄 Dados armazenados atualizados: {self.global_data.shape}")
 
         self.sample_results = []
         self.outliers_per_sample = []
@@ -83,6 +88,7 @@ class ControlChart:
             self.moving_ranges = []
         else:
             self.moving_ranges = np.abs(np.diff(self.individual_values))
+        return self.moving_ranges
 
     def _calculate_control_limits(self):
         global_mean = [res[0] for res in self.sample_results]
@@ -105,9 +111,9 @@ class ControlChart:
         lcl_R = d3 * cl_R
         lcl_s = cl_s - 3 * (cl_s / c4) * np.sqrt(1 - c4**2)
 
-        self.moving_ranges = self.calculate_moving_range_values()
+        # self.moving_ranges = self.calculate_moving_range_values()
         
-        if not self.moving_ranges:
+        if len(self.moving_ranges) == 0:
             cl_MR = 0
         else:
             cl_MR = np.mean(self.moving_ranges)

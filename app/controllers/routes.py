@@ -36,6 +36,10 @@ def update_data(sid, new_data):
     control_chart.update_data(new_data)
     control_chart.calculate_statistics()
 
+    #print("🔄 Dados atualizados para X Chart:", control_chart.control_limits["global_mean"])
+    #print("🔄 Dados atualizados para R Chart:", control_chart.control_limits["global_amplitude"])
+    #print("🔄 Dados atualizados para s Chart:", control_chart.control_limits["global_std"])
+
     send_chart_updates()
 
 def send_chart_updates():
@@ -50,13 +54,13 @@ def send_chart_updates():
     sio.emit('chart_update', charts)
 
 def generate_chart(chart_renderer):
-    img_buffer = BytesIO()
-    chart_renderer.render().save(img_buffer, format="PNG") 
+    img_buffer = chart_renderer.render()
     img_buffer.seek(0)
     
     img_base64 = base64.b64encode(img_buffer.getvalue()).decode("utf-8")
-    
-    return {"image": img_base64}
+
+    # print(f"Tamanho da imagem Base64: {len(img_base64)} caracteres")
+    return "data:image/png;base64," + img_base64
 
 @app.route('/update_data', method='POST')
 def update_data(new_data):
@@ -80,6 +84,10 @@ def update_data(new_data):
 
 #-----------------------------------------------------------------------------
 # Routes:
+
+@app.route('/')
+def plots_page():
+    return template("home.tpl")
 
 @app.route('/plot')
 def plots_page():
